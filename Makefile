@@ -2,7 +2,7 @@ TARGET = "src/main.cpp"
 EXECUTABLE = textfuck
 
 CXX = g++
-CXXFLAGS = -std=c++23 -Wconversion -Wall -Werror -Wextra -pedantic
+CXXFLAGS = -std=c++23 -Wconversion -Wall -Werror -Wextra -pedantic -lncurses
 
 release:
 	$(CXX) $(CXXFLAGS) -O3 $(TARGET) -o $(EXECUTABLE)
