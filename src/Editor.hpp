@@ -67,7 +67,7 @@ inline unsigned char Editor::getChar() {
 	if (col < rowIter->size()) {
 		return rowIter->at(col);
 	} else {
-		return 'a';
+		return '\n';
 	}
 }
 
@@ -179,7 +179,8 @@ void Editor::printBuffer() {
 
 void Editor::printStatus(const std::string& message) {
 	wclear(statusWindow);
-	wprintw(statusWindow, "Row %*zu/%zu\t\tCol %*zu/%zu", static_cast<int>(std::log10(lines.size())), row + 1, lines.size(), static_cast<int>(std::log10(rowIter->size() + 1)), col + 1, rowIter->size() + 1);
+
+	wprintw(statusWindow, "%03u\t Row %*zu/%zu\tCol %*zu/%zu", this->getChar(), static_cast<int>(std::log10(lines.size())), row + 1, lines.size(), static_cast<int>(std::log10(rowIter->size() + 1)), col + 1, rowIter->size() + 1);
 
 	std::size_t x = static_cast<std::size_t>(getmaxx(statusWindow));
 	mvwaddstr(statusWindow, 0, static_cast<int>(x - message.size()), message.c_str());
