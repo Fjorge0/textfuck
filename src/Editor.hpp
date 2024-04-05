@@ -1,5 +1,6 @@
 #include "ncurses.h"
 
+#include <cmath>
 #include <iostream>
 #include <fstream>
 #include <deque>
@@ -50,6 +51,8 @@ class Editor {
 		void end();
 
 		void printBuffer();
+		void printStatus(const std::string& message = std::string());
+
 		void writeBuffer();
 
 	private:
@@ -126,9 +129,11 @@ void Editor::start() {
 	mvaddch(y - 3, 0, ACS_LTEE);
 	mvaddch(y - 3, x - 1, ACS_RTEE);
 
-	mvwprintw(stdscr, 0, 1, "textfuck");
+	mvwaddstr(stdscr, 0, 1, "textfuck");
+	mvwaddstr(stdscr, y - 3, 1, fileName.c_str());
 
-	this->printBuffer();
+	printBuffer();
+	printStatus();
 
 	int input = '\0';
 	while (input != 'q') {
@@ -146,7 +151,6 @@ void Editor::end() {
 
 void Editor::printBuffer() {
 	wclear(textWindow);
-	wclear(statusWindow);
 
 	for (const std::deque<unsigned char>& line : this->lines) {
 		for (const unsigned char c : line) {
@@ -173,6 +177,17 @@ void Editor::printBuffer() {
 	refresh();
 }
 
+void Editor::printStatus(const std::string& message) {
+	wclear(statusWindow);
+	wprintw(statusWindow, "Row %*zu/%zu\t\tCol %*zu/%zu", static_cast<int>(std::log10(lines.size())), row + 1, lines.size(), static_cast<int>(std::log10(rowIter->size() + 1)), col + 1, rowIter->size() + 1);
+
+	std::size_t x = static_cast<std::size_t>(getmaxx(statusWindow));
+	mvwaddstr(statusWindow, 0, static_cast<int>(x - message.size()), message.c_str());
+
+	touchwin(stdscr);
+	refresh();
+}
+
 void Editor::writeBuffer() {
 	std::ofstream file(fileName, std::ios_base::trunc);
 
@@ -182,9 +197,13 @@ void Editor::writeBuffer() {
 		}
 		file << std::endl;
 	}
+
+	file.close();
 }
 
 void Editor::handleInput(int input) {
+	std::string message;
+
 	switch (input) {
 		case '<':
 			this->moveLeft();
@@ -200,9 +219,11 @@ void Editor::handleInput(int input) {
 			break;
 		case '.':
 			this->writeBuffer();
+			message = "File written";
 			break;
 		case ',':
 			{
+				printStatus("Replace");
 				unsigned char c = static_cast<unsigned char>(getch());
 				this->writeChar(c);
 			}
@@ -215,6 +236,7 @@ void Editor::handleInput(int input) {
 			break;
 	}
 
+	printStatus(message);
 	printBuffer();
 }
 
