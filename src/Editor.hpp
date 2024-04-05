@@ -95,9 +95,7 @@ Editor::Editor(std::string& fileName) : fileName(std::move(fileName)) {
 
 	std::string line;
 	while (std::getline(file, line)) {
-		std::cerr << line << std::endl;
 		lines.emplace_back(line.begin(), line.end());
-		std::cerr << lines.size() << std::endl;
 	}
 	file.close();
 
