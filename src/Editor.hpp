@@ -4,9 +4,12 @@
 #include <fstream>
 #include <deque>
 #include <list>
+#include <limits>
 #include <string>
 
 #pragma once
+
+#define _XOPEN_SOURCE_EXTENDED 1
 
 static constexpr size_t TAB_WIDTH = 4;
 
@@ -28,7 +31,8 @@ class Editor {
 
 		std::list<std::deque<unsigned char>> lines;
 		std::list<std::deque<unsigned char>>::iterator rowIter;
-		size_t row = 0, col = 0;
+		size_t row = 0, col = 0, rowOffset = 0;
+		WINDOW *textWindow = NULL, *statusWindow = NULL;
 
 		inline unsigned char getChar();
 		void writeChar(unsigned char c);
@@ -71,11 +75,19 @@ void Editor::writeChar(unsigned char c) {
 }
 
 void Editor::incrementChar() {
-	this->writeChar(this->getChar() + 1);
+	if (this->getChar() == std::numeric_limits<unsigned char>::max()) {
+		this->rowIter->erase(this->rowIter->begin() + this->col);
+	} else {
+		this->writeChar(this->getChar() + 1);
+	}
 }
 
 void Editor::decrementChar() {
-	this->writeChar(this->getChar() - 1);
+	if (this->getChar() == '\0') {
+		this->rowIter->erase(this->rowIter->begin() + this->col);
+	} else {
+		this->writeChar(this->getChar() - 1);
+	}
 }
 
 Editor::Editor(std::string& fileName) : fileName(std::move(fileName)) {
@@ -98,9 +110,25 @@ Editor::Editor(std::string& fileName) : fileName(std::move(fileName)) {
 
 void Editor::start() {
 	initscr();
+	start_color();
 	noecho();
 	cbreak();
 	keypad(stdscr, true);
+
+	int x, y;
+	getmaxyx(stdscr, y, x);
+	this->textWindow = subwin(stdscr, y - 6, x - 4, 2, 2);
+	this->statusWindow = subwin(stdscr, 1, x - 4, y - 2, 2);
+
+	leaveok(statusWindow, TRUE);
+	leaveok(textWindow, FALSE);
+
+	box(stdscr, 0, 0);
+	mvhline(y - 3, 0, ACS_HLINE, x);
+	mvaddch(y - 3, 0, ACS_LTEE);
+	mvaddch(y - 3, x - 1, ACS_RTEE);
+
+	mvwprintw(stdscr, 0, 1, "textfuck");
 
 	this->printBuffer();
 
@@ -119,16 +147,31 @@ void Editor::end() {
 }
 
 void Editor::printBuffer() {
-	clear();
+	wclear(textWindow);
+	wclear(statusWindow);
+
 	for (const std::deque<unsigned char>& line : this->lines) {
 		for (const unsigned char c : line) {
-			addch(c);
+			if (std::isprint(c)) {
+				waddch(textWindow, c);
+			} else {
+				waddch(textWindow, c | A_DIM | A_UNDERLINE);
+			}
 		}
-		addch('n');
-		addch('\n');
+
+		waddch(textWindow, '^' | A_DIM | A_UNDERLINE);
+		waddch(textWindow, 'n' | A_DIM | A_UNDERLINE);
+		waddch(textWindow, '\n');
 	}
 
-	wmove(stdscr, static_cast<int>(row), static_cast<int>(col));
+	wmove(textWindow, static_cast<int>(row), static_cast<int>(col));
+
+	int y, x, parY, parX;
+	getyx(textWindow, y, x);
+	getparyx(textWindow, parY, parX);
+	move(y + parY, x + parX);
+
+	touchwin(stdscr);
 	refresh();
 }
 
@@ -174,10 +217,7 @@ void Editor::handleInput(int input) {
 			break;
 	}
 
-	clear();
 	printBuffer();
-	wmove(stdscr, static_cast<int>(row), static_cast<int>(col));
-	refresh();
 }
 
 void Editor::moveUp() {
@@ -213,7 +253,7 @@ void Editor::moveLeft() {
 
 void Editor::moveRight() {
 	if (this->col == this->rowIter->size()) {
-		this->rowIter->emplace_back('b');
+		this->rowIter->emplace_back('a');
 	}
 
 	++this->col;
