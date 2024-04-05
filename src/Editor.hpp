@@ -32,7 +32,7 @@ class Editor {
 
 		std::list<std::deque<unsigned char>> lines;
 		std::list<std::deque<unsigned char>>::iterator rowIter;
-		size_t row = 0, col = 0, rowOffset = 0;
+		size_t row = 0, col = 0, firstRow = 0, firstCol = 0;
 		WINDOW *textWindow = NULL, *statusWindow = NULL;
 
 		inline unsigned char getChar();
@@ -152,26 +152,73 @@ void Editor::end() {
 void Editor::printBuffer() {
 	wclear(textWindow);
 
-	for (const std::deque<unsigned char>& line : this->lines) {
-		for (const unsigned char c : line) {
-			if (std::isprint(c)) {
-				waddch(textWindow, c);
-			} else {
-				waddch(textWindow, c | A_DIM | A_UNDERLINE);
+	int parY, parX, maxY, maxX;
+	getmaxyx(textWindow, maxY, maxX);
+	getparyx(textWindow, parY, parX);
+
+	int curX = -1, curY = -1;
+
+	if (this->firstRow > this->row) {
+		--this->firstRow;
+	} else if (static_cast<int>(this->row - this->firstRow) >= maxY) {
+		++this->firstRow;
+	}
+
+	mvwhline(stdscr, 1, 1, (this->firstRow > 0 ? ACS_UARROW : ' '), 3);
+	mvwhline(stdscr, parY + maxY, 1, (static_cast<int>(this->lines.size() - this->firstRow) > maxY ? ACS_DARROW : ' '), 3);
+
+	const auto printLine = [this, &maxX, &curY, &curX] (const std::deque<unsigned char>& line, const size_t row) {
+		if (this->firstCol > 0) {
+			waddch(textWindow, ACS_LARROW);
+		}
+
+		int y, x;
+		getyx(textWindow, y, x);
+
+		if (row == this->row) {
+			curY = y;
+		}
+
+		size_t col = this->firstCol;
+		while (x < maxX) {
+			if (col >= line.size()) {
+				break;
 			}
+
+			if (col == this->col) {
+				curX = x;
+			}
+			waddch(textWindow, line[col++]);
+
+			getyx(textWindow, y, x);
+		}
+
+		if (curX < 0) {
+			curX = x;
 		}
 
 		waddch(textWindow, '^' | A_DIM | A_UNDERLINE);
 		waddch(textWindow, 'n' | A_DIM | A_UNDERLINE);
-		waddch(textWindow, '\n');
+
+	};
+
+	auto iter = this->rowIter;
+	for (size_t row = this->row; row >= this->firstRow && row < this->lines.size(); --row) {
+		wmove(textWindow, static_cast<int>(row - this->firstRow), 0);
+		printLine(*iter, row);
+		--iter;
 	}
 
-	wmove(textWindow, static_cast<int>(row), static_cast<int>(col));
+	iter = this->rowIter;
+	++iter;
+	for (size_t row = this->row + 1; row < maxY + this->firstRow && iter != lines.end(); ++row) {
+		wmove(textWindow, static_cast<int>(row - this->firstRow), 0);
+		printLine(*iter, row);
+		++iter;
+	}
 
-	int y, x, parY, parX;
-	getyx(textWindow, y, x);
-	getparyx(textWindow, parY, parX);
-	move(y + parY, x + parX);
+	wmove(textWindow, curY, curX);
+	move(parY + curY, parX + curX);
 
 	touchwin(stdscr);
 	refresh();
@@ -203,7 +250,7 @@ void Editor::writeBuffer() {
 }
 
 void Editor::handleInput(int input) {
-	std::string message;
+	std::string message = "Normal";
 
 	switch (input) {
 		case '<':
