@@ -1,5 +1,5 @@
 # textfuck
-An ncurses-based [Brainfuck](https://en.wikipedia.org/wiki/Brainfuck) inspired text editor written in C++
+An ncurses-based text editor inspired by [Brainfuck](https://en.wikipedia.org/wiki/Brainfuck) written in C++
 
 > "this is horrid" — some guy on discord
 
