@@ -1,23 +1,29 @@
 SOURCEDIR = src
 TARGET = $(SOURCEDIR)/main.cpp
+OBJECTS = Editor.obj
 EXECUTABLE = textfuck
 
 CXX = g++
-CXXFLAGS = -std=c++23 -Wconversion -Wall -Werror -Wextra -pedantic -lncurses
+CXXFLAGS = -std=c++23 -Wconversion -Wall -Werror -Wextra -pedantic
+LIBS = -lncurses
 
-release: CXXFLAGS += -O3
-release: Editor.obj
-	$(CXX) $(CXXFLAGS) $(TARGET) -o $(EXECUTABLE) Editor.obj
-.PHONY: release
+all: CXXFLAGS += -O3
+all: $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $(TARGET) -o $(EXECUTABLE) $(OBJECTS) $(LIBS)
+.PHONY: all
 
-debug: CXXFLAGS += -Og -g3 -fsanitize=address -fsanitize=undefined
-debug: Editor.obj
-	$(CXX) $(CXXFLAGS) $(TARGET) -o $(EXECUTABLE)_debug Editor.obj
-.PHONY: debug
+all_debug: CXXFLAGS += -Og -g3 -fsanitize=address -fsanitize=undefined
+all_debug: $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $(TARGET) -o $(EXECUTABLE) $(OBJECTS) $(LIBS)
+.PHONY: all_debug
 
 clean:
 	rm -fv $(EXECUTABLE)* *.obj
 .PHONY: clean
 
-Editor.obj:
-	$(CXX) $(CXXFLAGS) -c $(SOURCEDIR)/Editor.cpp -o Editor.obj
+$(EXECUTABLE):
+	$(CXX) $(CXXFLAGS) $(TARGET) -o $(EXECUTABLE) $(OBJECTS) $(LIBS)
+
+$(OBJECTS): %.obj:
+	$(CXX) $(CXXFLAGS) -c $(SOURCEDIR)/$<.cpp -o $@ $(LIBS)
+
