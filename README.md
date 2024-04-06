@@ -3,6 +3,8 @@ An ncurses-based text editor inspired by Brainfuck written in C++
 
 > "this is horrid" — some guy on discord
 
+<img src="res/preview.png" height="500"></img>
+
 ## Syntax
 The syntax is heavily inspired by Brainfuck, with the addition of `q` to exit.
 
