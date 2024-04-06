@@ -29,7 +29,7 @@ class Editor {
 		void decrementChar();
 
 		void splitLine();
-		void mergeLines();
+		void mergeLines(const unsigned char c);
 
 	public:
 		Editor(std::string& fileName);
@@ -59,8 +59,12 @@ inline unsigned char Editor::getChar() {
 }
 
 void Editor::writeChar(unsigned char c) {
-	if (col < rowIter->size()) {
+	if (c == '\n') {
+		splitLine();
+	} else if (col < rowIter->size()) {
 		rowIter->at(col) = c;
+	} else {
+		mergeLines(c);
 	}
 }
 
@@ -88,8 +92,9 @@ void Editor::splitLine() {
 	this->rowIter = beforeIter;
 }
 
-void Editor::mergeLines() {
+void Editor::mergeLines(const unsigned char c) {
 	auto beforeIter = this->rowIter++;
+	beforeIter->push_back(c);
 	if (this->rowIter != this->lines.end()) {
 		beforeIter->insert(beforeIter->end(), this->rowIter->begin(), this->rowIter->end());
 		this->lines.erase(this->rowIter);
