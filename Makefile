@@ -8,13 +8,11 @@ CXXFLAGS = -std=c++23 -Wconversion -Wall -Werror -Wextra -pedantic
 LIBS = -lncurses
 
 all: CXXFLAGS += -O3
-all: $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $(TARGET) -o $(EXECUTABLE) $(OBJECTS) $(LIBS)
+all: $(OBJECTS) $(EXECUTABLE)
 .PHONY: all
 
 all_debug: CXXFLAGS += -Og -g3 -fsanitize=address -fsanitize=undefined
-all_debug: $(OBJECTS)
-	$(CXX) $(CXXFLAGS) $(TARGET) -o $(EXECUTABLE) $(OBJECTS) $(LIBS)
+all_debug: $(OBJECTS) $(EXECUTABLE)
 .PHONY: all_debug
 
 clean:
