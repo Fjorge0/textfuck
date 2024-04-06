@@ -1,4 +1,5 @@
 #include "Editor.hpp"
+#include <iostream>
 
 int main(int argc, char** argv) {
 	// Set the file name

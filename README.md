@@ -1,5 +1,5 @@
 # textfuck
-An ncurses-based text editor inspired by [Brainfuck](https://en.wikipedia.org/wiki/Brainfuck) written in C++
+An ncurses-based text editor inspired by Brainfuck written in C++
 
 > "this is horrid" — some guy on discord
 
@@ -21,8 +21,6 @@ The syntax is heavily inspired by Brainfuck, with the addition of `q` to exit.
 ## Configuration
 This is a WYSIWYG editor. What you see when you launch is the editor you get.
 
-Because of this, a dark background is encouraged for the best experience.
-
 ## Features
 - Text editing
 - Writing to disk
@@ -35,4 +33,4 @@ Because of this, a dark background is encouraged for the best experience.
 
 ### Dependencies
 - Some C++ compiler which supports C++20 and `#pragma once`
-- ncurses
+- ncurses (tested only with `6.4`)
