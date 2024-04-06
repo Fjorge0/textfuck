@@ -24,6 +24,6 @@ clean:
 $(EXECUTABLE):
 	$(CXX) $(CXXFLAGS) $(TARGET) -o $(EXECUTABLE) $(OBJECTS) $(LIBS)
 
-$(OBJECTS): %.obj:
-	$(CXX) $(CXXFLAGS) -c $(SOURCEDIR)/$<.cpp -o $@ $(LIBS)
+$(OBJECTS): %.obj: $(SOURCEDIR)/%.cpp
+	$(CXX) -c $(CXXFLAGS) $< -o $@ $(LIBS)
 
