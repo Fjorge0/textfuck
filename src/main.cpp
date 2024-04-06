@@ -1,10 +1,5 @@
 #include "Editor.hpp"
 
-#include <ncurses.h>
-#include <string>
-#include <fstream>
-#include <iostream>
-
 int main(int argc, char** argv) {
 	// Set the file name
 	std::string fileName;
