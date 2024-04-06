@@ -1,6 +1,7 @@
 #include "Editor.hpp"
 
 #include <cmath>
+#include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <limits>
@@ -61,13 +62,18 @@ void Editor::mergeLines(const unsigned char c) {
 }
 
 Editor::Editor(std::string& fileName) : fileName(std::move(fileName)) {
-	std::ifstream file(this->fileName);
+	if (std::filesystem::exists(std::filesystem::path(this->fileName))) {
+		std::ifstream file(this->fileName);
+		if (!file.is_open()) {
+			throw std::runtime_error("Error: Cannot read from file " + this->fileName);
+		}
 
-	std::string line;
-	while (std::getline(file, line)) {
-		lines.emplace_back(line.begin(), line.end());
+		std::string line;
+		while (std::getline(file, line)) {
+			lines.emplace_back(line.begin(), line.end());
+		}
+		file.close();
 	}
-	file.close();
 
 	if (lines.empty()) {
 		lines.resize(1);
@@ -269,20 +275,23 @@ void Editor::printStatus(const std::string& message) {
 
 void Editor::writeBuffer() {
 	std::ofstream file(fileName, std::ios_base::trunc);
-
-	for (const std::deque<unsigned char>& line : this->lines) {
-		for (const unsigned char c : line) {
-			file << c;
+	if (!file.is_open()) {
+		printStatus("Cannot write to file");
+	} else {
+		for (const std::deque<unsigned char>& line : this->lines) {
+			for (const unsigned char c : line) {
+				file << c;
+			}
+			file << std::endl;
 		}
-		file << std::endl;
-	}
 
-	file.close();
+		file.close();
+		printStatus("File written");
+	}
 }
 
 void Editor::handleInput(int input) {
-	std::string message = "Normal";
-
+	printStatus("Normal");
 	switch (input) {
 		case '<':
 			this->moveLeft();
@@ -298,13 +307,13 @@ void Editor::handleInput(int input) {
 			break;
 		case '.':
 			this->writeBuffer();
-			message = "File written";
 			break;
 		case ',':
 			{
 				printStatus("Replace");
 				unsigned char c = static_cast<unsigned char>(getch());
 				this->writeChar(c);
+				printStatus("Normal");
 			}
 			break;
 		case '[':
@@ -315,7 +324,6 @@ void Editor::handleInput(int input) {
 			break;
 	}
 
-	printStatus(message);
 	printBuffer();
 }
 
