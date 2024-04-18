@@ -5,7 +5,15 @@ An ncurses-based text editor inspired by Brainfuck written in C++
 
 <img src="res/preview.png" height="500"></img>
 
-## Syntax
+## Usage
+`textfuck <file>`
+
+### Features
+- [x] Text editing
+- [x] Writing to disk
+- [x] Innovative control scheme
+
+### Syntax
 The syntax is heavily inspired by Brainfuck, with the addition of `q` to exit.
 
 | Command | Meaning |
@@ -20,19 +28,20 @@ The syntax is heavily inspired by Brainfuck, with the addition of `q` to exit.
 | `]` | Move to the previous line <br> Prepend line if at start of file |
 | `q` | Quit |
 
-## Configuration
+> [!CAUTION]
+> There is no undo. Be careful writing to disk, as the changes will be irreversible.
+
+### Configuration
 This is a WYSIWYG editor. What you see when you launch is the editor you get.
 
-## Features
-- Text editing
-- Writing to disk
-- An experience to remember
-
 ## Building
-`make release` (default)
-
-`make debug` - for debugging
+- `make all`
+  - This is the default option. It will compile with optimisation level 3
+- `make all_debug`
+  - This is for debugging. It will compile with the address sanatizer and `-Og`
 
 ### Dependencies
-- Some C++ compiler which supports C++20 and `#pragma once`
-- ncurses (tested only with `6.4`)
+- C++20
+- ncurses
+> [!WARNING]
+> This program has only been tested with `ncurses` 6.4 and `g++` with C++20
